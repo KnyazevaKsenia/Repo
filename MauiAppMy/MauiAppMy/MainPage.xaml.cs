@@ -4,28 +4,38 @@ using static System.Type;
 using System;
 using Microsoft.Maui.Controls;
 using Microsoft.Maui.Controls.Compatibility;
+
+
+
+
 namespace MauiAppMy
 {
     public partial class MainPage : ContentPage
     {
-        int buttomCount;
+        int buttomCount=0;
         string sborkaAdress;
         bool assemblyStatus;
         private Assembly assembly;
         int vertexAmount;
-        int[,] matrix;
+        string[,] matrix;
         Microsoft.Maui.Controls.Grid matrixGrid;
+        Type t;
+        MethodInfo methodInfo;
+        Microsoft.Maui.Controls.Grid floidGrid;
+        Microsoft.Maui.Controls.Grid labelGrid;
+
 
         public MainPage()
         {
             InitializeComponent();
+            
         }
 
         public void SborkaButtom_Clicked(object sender, EventArgs e)
         {
             sborkaAdress=SborkaLabel.Text;
-            
             InstallAssembly();
+            t=assembly.GetType("Graph");
         }
 
         private void InstallAssembly()
@@ -57,6 +67,7 @@ namespace MauiAppMy
             Assembly asm = Assembly.LoadFrom(SborkaLabel.Text);
             assembly = asm;
             CheckForContract(asm);
+
         }
 
         private void CheckForContract(Assembly asm)
@@ -68,13 +79,13 @@ namespace MauiAppMy
             assemblyStatus = hasImplementation;
         }
 
-        private void Button_Clicked(object sender, EventArgs e)
+        private void Button_Clicked(object sender, EventArgs e) //конструктор матрицы введенного размеа
         {
             buttomCount++;
             if (buttomCount > 1) 
             {
+                stack.Children.RemoveAt(stack.Children.Count - 3);
                 stack.Children.RemoveAt(stack.Children.Count - 2);
-                stack.Children.RemoveAt(stack.Children.Count - 1);
             }
 
             int.TryParse(VercEntry.Text, out vertexAmount);
@@ -91,7 +102,6 @@ namespace MauiAppMy
                     {
                         grid.ColumnDefinitions.Add(new ColumnDefinition { Width = 40 });
                     }
-
                     Entry entry = new Entry();
                     grid.SetRow(entry, i); 
                     grid.SetColumn(entry, j); 
@@ -110,17 +120,37 @@ namespace MauiAppMy
             floidButton.Background = Colors.BlueViolet;
             floidButton.Text = "Запустить алгоритм Флойда";
             floidButton.Clicked += OnButtonClicked;
-
             stack.Children.Add(floidButton);
-        }
-        void ButtonClickedEventHandler(object floidBotton, EventArgs e)
-        {
-            ReadMatrix();
         }
 
         public  void  ReadMatrix()
         {
-            matrix = new int[vertexAmount, vertexAmount];
+            labelGrid = new Microsoft.Maui.Controls.Grid();
+            for (int i = 0; i < vertexAmount; i++)
+            {
+                labelGrid.RowDefinitions.Add(new RowDefinition { Height = 40 });
+
+                for (int j = 0; j < vertexAmount; j++)
+                {
+                    if (i == 0)
+                    {
+                        labelGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = 40 });
+                    }
+
+                    Label entry = new Label();
+
+                    labelGrid.SetRow(entry, i);
+                    labelGrid.SetColumn(entry, j);
+                    labelGrid.Children.Add(entry);
+                }
+            }
+            ReadToMatrix();
+            stack.Add(labelGrid);
+        }
+
+        public void ReadToMatrix()
+        {
+            matrix = new string[vertexAmount, vertexAmount];
             foreach (var child in matrixGrid.Children)
             {
                 // Проверяем, является ли элемент Entry
@@ -130,21 +160,41 @@ namespace MauiAppMy
                     int row = Microsoft.Maui.Controls.Grid.GetRow(entry);
                     int column = Microsoft.Maui.Controls.Grid.GetColumn(entry);
 
-                    // Парсим значение элемента и записываем его в массив
-                    if (int.TryParse(entry.Text, out int value))
+                    foreach (Label label in labelGrid)
                     {
-                        matrix[row, column] = value;
+                        int labelrow = Microsoft.Maui.Controls.Grid.GetRow(entry);
+                        int labelcolumn = Microsoft.Maui.Controls.Grid.GetColumn(entry);
+                        if (row==labelrow && column==labelcolumn)
+                        {
+                            label.Text = entry.Text;
+                        }
                     }
                 }
             }
         }
 
-        private void OnButtonClicked(object sender, System.EventArgs e)
+        private void OnButtonClicked(object sender, System.EventArgs e)//кнопка запустить флойда
         {
-            Button button = (Button)sender;
+
+            
             ReadMatrix();
+            int vertices = vertexAmount;
+            stack.Add(floidGrid);
+            
+            buttomCount++;
+            /*if (buttomCount > 1)
+            {
+                stack.Children.RemoveAt(stack.Children.Count - 3);
+                stack.Children.RemoveAt(stack.Children.Count - 2);
+                stack.Children.RemoveAt(stack.Children.Count-1);
+            }*/
+        }
 
-
+        public void FillAndStartAlgo()
+        {
+            
         }
     }
+
+
 }
